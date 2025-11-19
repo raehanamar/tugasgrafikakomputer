@@ -7,10 +7,10 @@ let rocketX = 0;
 
 // Quiz
 let soal = [
-  ['Waktu di roket cepat akan:', ['Lebih cepat', 'Lebih lambat', 'Tetap sama', 'Berhenti'], 1],
-  ['Rumus Lorentz adalah:', ['γ=1/√(1-v²/c²)', 'γ=√(1-v²/c²)', 'γ=v/c', 'γ=c/v'], 0],
-  ['Benda cepat terlihat:', ['Lebih panjang', 'Lebih pendek', 'Tetap sama', 'Menghilang'], 1],
-  ['Penemu Relativitas:', ['Newton', 'Einstein', 'Galileo', 'Hawking'], 1]
+  ['Apa yang terjadi pada waktu di roket yang bergerak sangat cepat:', ['Lebih cepat', 'Lebih lambat', 'Tetap sama', 'Berhenti'], 1],
+  ['Rumus faktor Lorentz adalah:', ['γ=1/√(1-v²/c²)', 'γ=√(1-v²/c²)', 'γ=v/c', 'γ=c/v'], 0],
+  ['Jika roket bergerak dengan v = 0.8c, benda di dalamnya akan:', ['Lebih panjang', 'Lebih pendek', 'Tetap sama', 'Menghilang'], 1],
+  ['Siapa Penemu Teori Relativitas khusus:', ['Newton', 'Einstein', 'Galileo', 'Hawking'], 1]
 ];
 let no = 0, skor = 0, jawab = false, ans = -1;
 
