@@ -1,0 +1,299 @@
+// Click and drag the mouse to view the scene from different angles.
+#percobaan1
+function setup() {
+  createCanvas(600, 600);
+  background(random(200), random(255), random(222));
+}
+
+function draw() {
+  fill(random(255), random(255), random(255), random(255));
+  rectMode(CENTER);
+  circle(mouseX, mouseY, 100);
+}
+
+#percobaan 2
+function setup() {
+  createCanvas(600, 600);
+  background(random(200), random(255), random(222));
+}
+
+function draw() {
+  line(pmouseX, pmouseY, mouseX, mouseY);
+}
+
+#percobaan 3
+size = 500
+function setup() {
+  createCanvas(600, 600);
+  background(random(200), random(255), random(222));
+}
+
+function draw() {
+  circle(300,300,size);
+  if (mouseIsPressed){
+    size -= 1;
+  }
+}
+
+#percobaan4
+x = 300;
+y = 300;
+size = 80;
+
+function setup() {
+  createCanvas(600, 600);
+}
+
+function draw() {
+  background(89, 180, 78);
+  if (keyIsPressed) {
+    if (key === 'w' || key === 'W') {
+      y -= 4; // gerak ke atas
+    } else if (key === 's' || key === 'S') {
+      y += 4; // gerak ke bawah
+    } else if (key === 'a' || key === 'A') {
+      x -= 4; // gerak ke kiri
+    } else if (key === 'd' || key === 'D') {
+      x += 4; // gerak ke kanan
+    }
+  }
+  circle(x, y, size);
+}
+
+#Percobaan 5
+x = 300;
+y = 300;
+size = 80;
+
+function setup() {
+  createCanvas(600, 600);
+}
+
+function draw() {
+  background(89, 180, 78);
+  if (keyIsPressed === true) {
+    if (keyIsPressed) {
+    if (key === 'w' || key === 'W') {
+      y -= 4; // gerak ke atas
+    } else if (key === 's' || key === 'S') {
+      y += 4; // gerak ke bawah
+    } else if (key === 'a' || key === 'A') {
+      x -= 4; // gerak ke kiri
+    } else if (key === 'd' || key === 'D') {
+      x += 4; // gerak ke kanan
+    }
+  }
+  }
+
+  if (x - size / 2 > width) {
+    x = 0;
+  } else if (x + size / 2 < 0) {
+    x = 600;
+  }
+  if (y - size / 2 > height) {
+    y = 0;
+  } else if (y + size / 2 < 0) {
+    y = 600;
+  }
+
+  circle(x, y, size);
+}
+
+#percobaan 6
+let x = 300;
+let y = 300;
+let size = 100;
+
+function setup() {
+  createCanvas(600, 600);
+}
+
+function draw() {
+  // Latar belakang langit malam
+  background(10, 10, 40);
+  
+  // Bintang-bintang
+  for (let i = 0; i < 100; i++) {
+    fill(255);
+    circle(random(width), random(height / 2), random(1, 3));
+  }
+
+  // Gerakan UFO dengan tombol W, A, S, D
+  if (keyIsPressed) {
+    if (key === 'w' || key === 'W') {
+      y -= 4;
+    } else if (key === 's' || key === 'S') {
+      y += 4;
+    } else if (key === 'a' || key === 'A') {
+      x -= 4;
+    } else if (key === 'd' || key === 'D') {
+      x += 4;
+    }
+  }
+
+  // Jika keluar layar, muncul di sisi berlawanan
+  if (x > width + 60) x = -60;
+  if (x < -60) x = width + 60;
+  if (y > height + 40) y = -40;
+  if (y < -40) y = height + 40;
+
+  // Gambar UFO
+  drawUFO(x, y, size);
+}
+
+function drawUFO(x, y, size) {
+  noStroke();
+
+  // Cahaya di bawah UFO
+  fill(255, 255, 100, 80);
+  triangle(x - size / 2, y + 20, x + size / 2, y + 20, x, y + 150);
+
+  // Bagian bawah UFO
+  fill(180);
+  ellipse(x, y, size + 40, size / 3);
+
+  // Kubah atas UFO
+  fill(150, 220, 255);
+  ellipse(x, y - size / 4, size / 1.5, size / 2);
+
+  // Lampu-lampu di sekitar UFO
+  fill(255, 0, 0);
+  circle(x - size / 2.5, y, 10);
+  fill(0, 255, 0);
+  circle(x, y + 5, 10);
+  fill(255, 255, 0);
+  circle(x + size / 2.5, y, 10);
+}
+
+PERCOBAAN 7
+class Ball {
+  constructor(x, y, diameter, warna) {
+    this.x = x;
+    this.y = y;
+    this.speedX = random(4);
+    this.speedY = random(4);
+    this.diameter = diameter;
+    this.warna = warna;
+  }
+
+  display() {
+    noStroke();
+    fill(this.warna);
+    circle(this.x, this.y, this.diameter, this.warna);
+  }
+
+  move() {
+    this.x += this.speedX;
+    this.y -= this.speedY;
+
+    if (this.x >= width - this.diameter / 2 || this.x <= +this.diameter / 2) {
+      this.speedX *= -1;
+    }
+
+    if (this.y >= height - this.diameter / 2 || this.y <= +this.diameter / 2) {
+      this.speedY *= -1;
+    }
+  }
+}
+
+let balls = [];
+
+function setup() {
+  createCanvas(600, 600);
+  for (let index = 0; index < 3; index++) {
+    balls.push(
+      new Ball(
+        random(600),
+        random(600),
+        random(100),
+        color(222), (3), (4), (50)
+      )
+    );
+  }
+}
+
+function draw() {
+  background(224, 121, 33);
+  for (let ball of balls) {
+    ball.display();
+    ball.move();
+  }
+}
+
+function mouseClicked() {
+  balls.push(
+    new Ball(
+      mouseX,
+      mouseY,
+      random(100),
+      color(random(255), random(255), random(255), random(255))
+    )
+  );
+}
+
+PERCOBAAN 8
+
+class Ball {
+  constructor(x, y, diameter, warna) {
+    this.x = x;
+    this.y = y;
+    this.speedX = random(4);
+    this.speedY = random(4);
+    this.diameter = diameter;
+    this.warna = warna;
+  }
+
+  display() {
+    noStroke();
+    fill(this.warna);
+    circle(this.x, this.y, this.diameter, this.warna);
+  }
+
+  move() {
+    this.x += this.speedX;
+    this.y -= this.speedY;
+
+    if (this.x >= width - this.diameter / 2 || this.x <= +this.diameter / 2) {
+      this.speedX *= -1;
+    }
+
+    if (this.y >= height - this.diameter / 2 || this.y <= +this.diameter / 2) {
+      this.speedY *= -1;
+    }
+  }
+}
+
+let balls = [];
+
+function setup() {
+  createCanvas(600, 600);
+  for (let index = 0; index < 3; index++) {
+    balls.push(
+      new Ball(
+        random(600),
+        random(600),
+        random(100),
+        color(222), (3), (4), (50)
+      )
+    );
+  }
+}
+
+function draw() {
+  background(224, 121, 33);
+  for (let ball of balls) {
+    ball.display();
+    ball.move();
+  }
+}
+
+function mouseClicked() {
+  balls.push(
+    new Ball(
+      mouseX,
+      mouseY,
+      random(100),
+      color(random(255), random(255), random(255), random(255))
+    )
+  );
+}

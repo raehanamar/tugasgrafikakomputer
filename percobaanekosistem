@@ -1,0 +1,635 @@
+// Global variables
+let plants = [];
+let herbivores = [];
+let carnivores = [];
+let sun;
+let water = 100;
+let pollution = 0;
+let time = 0;
+let selectedTool = null;
+let score = 0;
+let gameState = 'menu'; // menu, playing, gameover
+let gameMessage = '';
+
+// Sun class
+class Sun {
+  constructor() {
+    this.intensity = 100;
+  }
+  
+  display() {
+    push();
+    let sunX = width - 60;
+    let sunY = 60;
+    
+    fill(255, 220, 0, 200);
+    noStroke();
+    circle(sunX, sunY, 50);
+    
+    // Sun rays
+    for (let i = 0; i < 8; i++) {
+      let angle = (TWO_PI / 8) * i + frameCount * 0.01;
+      let x1 = sunX + cos(angle) * 25;
+      let y1 = sunY + sin(angle) * 25;
+      let x2 = sunX + cos(angle) * 40;
+      let y2 = sunY + sin(angle) * 40;
+      strokeWeight(3);
+      stroke(255, 220, 0);
+      line(x1, y1, x2, y2);
+    }
+    pop();
+  }
+}
+
+// Plant class
+class Plant {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.size = 20;
+    this.energy = 100;
+    this.growthRate = 0.5;
+  }
+  
+  grow() {
+    if (sun && sun.intensity > 50 && water > 20 && pollution < 50) {
+      this.energy = constrain(this.energy + this.growthRate, 0, 100);
+      this.size = map(this.energy, 0, 100, 15, 30);
+    } else {
+      this.energy = constrain(this.energy - 0.2, 0, 100);
+      this.size = map(this.energy, 0, 100, 15, 30);
+    }
+  }
+  
+  display() {
+    push();
+    let col = lerpColor(color(139, 69, 19), color(34, 139, 34), this.energy / 100);
+    fill(col);
+    noStroke();
+    
+    // Stem
+    ellipse(this.x, this.y, this.size, this.size * 1.5);
+    
+    // Leaves
+    fill(34, 139, 34, this.energy * 2);
+    ellipse(this.x - 8, this.y - 10, 12, 15);
+    ellipse(this.x + 8, this.y - 10, 12, 15);
+    ellipse(this.x, this.y - 15, 12, 15);
+    pop();
+  }
+  
+  isDead() {
+    return this.energy <= 0;
+  }
+}
+
+// Herbivore class
+class Herbivore {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.size = 25;
+    this.energy = 100;
+    this.speed = 2;
+    this.target = null;
+  }
+  
+  findFood() {
+    if (plants.length > 0) {
+      let closest = null;
+      let minDist = Infinity;
+      for (let plant of plants) {
+        let d = dist(this.x, this.y, plant.x, plant.y);
+        if (d < minDist && plant.energy > 30) {
+          minDist = d;
+          closest = plant;
+        }
+      }
+      this.target = closest;
+    }
+  }
+  
+  move() {
+    if (this.target && !this.target.isDead()) {
+      let angle = atan2(this.target.y - this.y, this.target.x - this.x);
+      this.x += cos(angle) * this.speed;
+      this.y += sin(angle) * this.speed;
+      
+      // Eat plant
+      if (dist(this.x, this.y, this.target.x, this.target.y) < 20) {
+        this.energy = constrain(this.energy + 30, 0, 150);
+        this.target.energy -= 40;
+        this.target = null;
+      }
+    } else {
+      // Random movement
+      this.x += random(-1, 1);
+      this.y += random(-1, 1);
+    }
+    
+    // Keep within bounds
+    this.x = constrain(this.x, 30, width - 30);
+    this.y = constrain(this.y, 100, height - 100);
+    this.energy -= 0.15;
+  }
+  
+  display() {
+    push();
+    let col = lerpColor(color(160, 82, 45), color(210, 180, 140), this.energy / 100);
+    fill(col);
+    noStroke();
+    
+    // Body
+    ellipse(this.x, this.y, this.size, this.size * 0.8);
+    
+    // Head
+    ellipse(this.x + 10, this.y - 5, 15, 18);
+    
+    // Eye
+    fill(0);
+    circle(this.x + 13, this.y - 8, 3);
+    
+    // Legs
+    fill(col);
+    rect(this.x - 10, this.y + 5, 6, 10);
+    rect(this.x + 4, this.y + 5, 6, 10);
+    pop();
+  }
+  
+  isDead() {
+    return this.energy <= 0;
+  }
+}
+
+// Carnivore class
+class Carnivore {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.size = 30;
+    this.energy = 100;
+    this.speed = 2.5;
+    this.target = null;
+  }
+  
+  findFood() {
+    if (herbivores.length > 0) {
+      let closest = null;
+      let minDist = Infinity;
+      for (let herb of herbivores) {
+        let d = dist(this.x, this.y, herb.x, herb.y);
+        if (d < minDist) {
+          minDist = d;
+          closest = herb;
+        }
+      }
+      this.target = closest;
+    }
+  }
+  
+  move() {
+    if (this.target && !this.target.isDead()) {
+      let angle = atan2(this.target.y - this.y, this.target.x - this.x);
+      this.x += cos(angle) * this.speed;
+      this.y += sin(angle) * this.speed;
+      
+      // Catch herbivore
+      if (dist(this.x, this.y, this.target.x, this.target.y) < 25) {
+        this.energy = constrain(this.energy + 50, 0, 150);
+        // Remove herbivore
+        let index = herbivores.indexOf(this.target);
+        if (index > -1) {
+          herbivores.splice(index, 1);
+        }
+        this.target = null;
+      }
+    } else {
+      // Random movement
+      this.x += random(-0.8, 0.8);
+      this.y += random(-0.8, 0.8);
+    }
+    
+    // Keep within bounds
+    this.x = constrain(this.x, 30, width - 30);
+    this.y = constrain(this.y, 100, height - 100);
+    this.energy -= 0.2;
+  }
+  
+  display() {
+    push();
+    let col = lerpColor(color(80, 80, 80), color(120, 120, 120), this.energy / 100);
+    fill(col);
+    noStroke();
+    
+    // Body
+    ellipse(this.x, this.y, this.size, this.size * 0.7);
+    
+    // Ears
+    triangle(this.x - 10, this.y - 15, this.x - 5, this.y - 8, this.x - 12, this.y - 8);
+    triangle(this.x + 10, this.y - 15, this.x + 5, this.y - 8, this.x + 12, this.y - 8);
+    
+    // Head
+    ellipse(this.x + 12, this.y - 2, 18, 20);
+    
+    // Eye
+    fill(255, 0, 0);
+    circle(this.x + 15, this.y - 5, 4);
+    pop();
+  }
+  
+  isDead() {
+    return this.energy <= 0;
+  }
+}
+
+// p5.js setup function
+function setup() {
+  createCanvas(900, 700);
+  textFont('Arial');
+  
+  sun = new Sun();
+  
+  // Initialize with some plants
+  for (let i = 0; i < 8; i++) {
+    plants.push(new Plant(random(50, width - 50), random(150, height - 150)));
+  }
+}
+
+// p5.js draw function
+function draw() {
+  if (gameState === 'menu') {
+    drawMenu();
+  } else if (gameState === 'playing') {
+    drawGame();
+  } else if (gameState === 'gameover') {
+    drawGameOver();
+  }
+}
+
+function drawMenu() {
+  background(135, 206, 235);
+  
+  // Ground
+  fill(34, 139, 34);
+  rect(0, height - 100, width, 100);
+  
+  // Title with shadow
+  fill(0, 0, 0, 50);
+  textSize(56);
+  textAlign(CENTER, CENTER);
+  text('🌿 EKOSISTEM 🦌', width / 2 + 3, 153);
+  
+  fill(255);
+  textSize(56);
+  text('🌿 EKOSISTEM 🦌', width / 2, 150);
+  
+  // Subtitle
+  fill(255, 255, 255, 230);
+  textSize(28);
+  text('Pelajari Rantai Makanan!', width / 2, 230);
+  
+  // Instructions box
+  fill(255, 255, 255, 240);
+  rect(width / 2 - 300, 280, 600, 220, 15);
+  
+  textSize(20);
+  textAlign(LEFT);
+  fill(46, 125, 50);
+  text('📚 Cara Bermain:', width / 2 - 270, 320);
+  
+  fill(60, 60, 60);
+  textSize(16);
+  text('• Klik tombol untuk memilih organisme', width / 2 - 270, 355);
+  text('• Klik pada area permainan untuk menempatkannya', width / 2 - 270, 380);
+  text('• Tumbuhan (🌱) → Herbivora (🦌) → Karnivora (🐺)', width / 2 - 270, 405);
+  text('• Kelola air (💧) dan bersihkan polusi (🧹)', width / 2 - 270, 430);
+  text('• Jaga keseimbangan agar ekosistem bertahan!', width / 2 - 270, 455);
+  text('• Semakin banyak organisme, semakin tinggi skor', width / 2 - 270, 480);
+  
+  // Start button with hover effect
+  let btnX = width / 2 - 120;
+  let btnY = 540;
+  let btnW = 240;
+  let btnH = 60;
+  
+  if (mouseX > btnX && mouseX < btnX + btnW && mouseY > btnY && mouseY < btnY + btnH) {
+    fill(65, 175, 70);
+    cursor(HAND);
+  } else {
+    fill(46, 125, 50);
+    cursor(ARROW);
+  }
+  
+  rect(btnX, btnY, btnW, btnH, 15);
+  
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(28);
+  text('▶ MULAI BERMAIN', width / 2, btnY + btnH / 2);
+  
+  // Info footer
+  fill(255, 255, 255, 180);
+  textSize(14);
+  text('Game Pembelajaran Biologi - Tingkat SMA/SMK/MA', width / 2, height - 30);
+}
+
+function drawGame() {
+  background(135, 206, 235);
+  
+  // Ground with grass pattern
+  fill(34, 139, 34);
+  rect(0, height - 100, width, 100);
+  
+  // Draw some grass blades
+  for (let i = 0; i < 20; i++) {
+    fill(40, 160, 40, 100);
+    let x = (i * width) / 20;
+    triangle(x, height - 100, x + 5, height - 100, x + 2, height - 115);
+  }
+  
+  if (sun) {
+    sun.display();
+  }
+  
+  // Update environmental factors
+  time++;
+  if (time % 300 === 0) {
+    water = constrain(water - 5, 0, 100);
+    pollution = constrain(pollution + random(1, 3), 0, 100);
+  }
+  
+  // Update and display plants
+  for (let i = plants.length - 1; i >= 0; i--) {
+    if (plants[i]) {
+      plants[i].grow();
+      plants[i].display();
+      if (plants[i].isDead()) {
+        plants.splice(i, 1);
+      }
+    }
+  }
+  
+  // Update and display herbivores
+  for (let i = herbivores.length - 1; i >= 0; i--) {
+    if (herbivores[i]) {
+      if (frameCount % 60 === 0) herbivores[i].findFood();
+      herbivores[i].move();
+      herbivores[i].display();
+      if (herbivores[i].isDead()) {
+        herbivores.splice(i, 1);
+      }
+    }
+  }
+  
+  // Update and display carnivores
+  for (let i = carnivores.length - 1; i >= 0; i--) {
+    if (carnivores[i]) {
+      if (frameCount % 60 === 0) carnivores[i].findFood();
+      carnivores[i].move();
+      carnivores[i].display();
+      if (carnivores[i].isDead()) {
+        carnivores.splice(i, 1);
+      }
+    }
+  }
+  
+  // Display stats panel
+  fill(255, 255, 255, 230);
+  rect(10, 10, 240, 95, 10);
+  
+  fill(34, 139, 34);
+  textSize(16);
+  textAlign(LEFT);
+  text('🌱 Tumbuhan: ' + plants.length, 25, 35);
+  text('🦌 Herbivora: ' + herbivores.length, 25, 58);
+  text('🐺 Karnivora: ' + carnivores.length, 25, 81);
+  
+  // Environmental stats
+  fill(255, 255, 255, 230);
+  rect(width - 250, 10, 240, 95, 10);
+  
+  fill(0, 150, 255);
+  text('💧 Air: ' + Math.round(water) + '%', width - 235, 35);
+  
+  fill(pollution > 50 ? color(200, 50, 50) : color(100, 100, 100));
+  text('☠️ Polusi: ' + Math.round(pollution) + '%', width - 235, 58);
+  
+  // Calculate and display score
+  score = plants.length + herbivores.length * 2 + carnivores.length * 3;
+  fill(255, 200, 0);
+  textSize(18);
+  text('⭐ Skor: ' + score, width - 235, 85);
+  
+  drawToolbar();
+  
+  // Check game over conditions
+  if (plants.length === 0 && herbivores.length === 0) {
+    gameState = 'gameover';
+    gameMessage = 'Ekosistem Hancur!\nTidak ada produsen atau konsumen.';
+  }
+  
+  if (pollution > 80) {
+    gameState = 'gameover';
+    gameMessage = 'Polusi Terlalu Tinggi!\nEkosistem tidak dapat bertahan.';
+  }
+}
+
+function drawToolbar() {
+  fill(101, 67, 33);
+  rect(0, height - 100, width, 100);
+  
+  let tools = [
+    { name: 'plant', emoji: '🌱', label: 'Tumbuhan', x: 100, desc: 'Produsen' },
+    { name: 'herbivore', emoji: '🦌', label: 'Herbivora', x: 260, desc: 'Konsumen I' },
+    { name: 'carnivore', emoji: '🐺', label: 'Karnivora', x: 420, desc: 'Konsumen II' },
+    { name: 'water', emoji: '💧', label: 'Tambah Air', x: 580, desc: '+20%' },
+    { name: 'clean', emoji: '🧹', label: 'Bersihkan', x: 740, desc: '-15%' }
+  ];
+  
+  for (let tool of tools) {
+    let btnX = tool.x - 60;
+    let btnY = height - 80;
+    let btnW = 120;
+    let btnH = 65;
+    
+    // Hover effect
+    let isHover = mouseX > btnX && mouseX < btnX + btnW && mouseY > btnY && mouseY < btnY + btnH;
+    
+    if (selectedTool === tool.name) {
+      fill(100, 200, 100);
+      strokeWeight(3);
+      stroke(255);
+    } else if (isHover) {
+      fill(70, 160, 70);
+      noStroke();
+      cursor(HAND);
+    } else {
+      fill(46, 125, 50);
+      noStroke();
+    }
+    
+    rect(btnX, btnY, btnW, btnH, 8);
+    
+    // Emoji
+    textSize(26);
+    textAlign(CENTER, CENTER);
+    text(tool.emoji, tool.x, btnY + 18);
+    
+    // Label
+    textSize(12);
+    fill(255);
+    text(tool.label, tool.x, btnY + 40);
+    
+    // Description
+    textSize(10);
+    fill(200, 255, 200);
+    text(tool.desc, tool.x, btnY + 56);
+  }
+  
+  // Selected tool indicator
+  if (selectedTool) {
+    fill(255, 255, 255, 200);
+    textSize(14);
+    textAlign(CENTER);
+    text('👆 Klik pada area permainan untuk menempatkan', width / 2, height - 15);
+  }
+  
+  cursor(ARROW);
+}
+
+function drawGameOver() {
+  background(40, 40, 60);
+  
+  // Game over title
+  fill(255, 100, 100);
+  textSize(64);
+  textAlign(CENTER, CENTER);
+  text('GAME OVER', width / 2, 150);
+  
+  // Message box
+  fill(60, 60, 80);
+  rect(width / 2 - 300, 230, 600, 120, 15);
+  
+  fill(255, 200, 200);
+  textSize(24);
+  let lines = gameMessage.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    text(lines[i], width / 2, 270 + i * 35);
+  }
+  
+  // Score display
+  fill(255, 215, 0);
+  textSize(36);
+  text('⭐ Skor Akhir: ' + score, width / 2, 400);
+  
+  // Restart button
+  let btnX = width / 2 - 120;
+  let btnY = 470;
+  let btnW = 240;
+  let btnH = 60;
+  
+  if (mouseX > btnX && mouseX < btnX + btnW && mouseY > btnY && mouseY < btnY + btnH) {
+    fill(65, 175, 70);
+    cursor(HAND);
+  } else {
+    fill(46, 125, 50);
+    cursor(ARROW);
+  }
+  
+  rect(btnX, btnY, btnW, btnH, 15);
+  fill(255);
+  textSize(26);
+  text('🔄 MAIN LAGI', width / 2, btnY + btnH / 2);
+  
+  // Tips
+  fill(200, 200, 220);
+  textSize(16);
+  text('💡 Tips: Jaga keseimbangan antara produsen dan konsumen!', width / 2, 570);
+  text('Pastikan ada cukup tumbuhan untuk herbivora', width / 2, 595);
+  text('dan cukup herbivora untuk karnivora', width / 2, 620);
+}
+
+function mousePressed() {
+  if (gameState === 'menu') {
+    // Check start button
+    let btnX = width / 2 - 120;
+    let btnY = 540;
+    let btnW = 240;
+    let btnH = 60;
+    
+    if (mouseX > btnX && mouseX < btnX + btnW && mouseY > btnY && mouseY < btnY + btnH) {
+      gameState = 'playing';
+      resetGame();
+    }
+  } else if (gameState === 'playing') {
+    // Check toolbar
+    if (mouseY > height - 100) {
+      let tools = [
+        { name: 'plant', x: 100 },
+        { name: 'herbivore', x: 260 },
+        { name: 'carnivore', x: 420 },
+        { name: 'water', x: 580 },
+        { name: 'clean', x: 740 }
+      ];
+      
+      for (let tool of tools) {
+        let btnX = tool.x - 60;
+        let btnW = 120;
+        
+        if (mouseX > btnX && mouseX < btnX + btnW) {
+          if (tool.name === 'water') {
+            water = constrain(water + 20, 0, 100);
+            selectedTool = null;
+          } else if (tool.name === 'clean') {
+            pollution = constrain(pollution - 15, 0, 100);
+            selectedTool = null;
+          } else {
+            selectedTool = tool.name;
+          }
+          break;
+        }
+      }
+    } else if (selectedTool) {
+      // Place organisms in game area
+      if (mouseY < height - 100 && mouseY > 100) {
+        if (selectedTool === 'plant') {
+          plants.push(new Plant(mouseX, mouseY));
+          selectedTool = null;
+        } else if (selectedTool === 'herbivore' && plants.length > 0) {
+          herbivores.push(new Herbivore(mouseX, mouseY));
+          selectedTool = null;
+        } else if (selectedTool === 'carnivore' && herbivores.length > 0) {
+          carnivores.push(new Carnivore(mouseX, mouseY));
+          selectedTool = null;
+        }
+      }
+    }
+  } else if (gameState === 'gameover') {
+    // Check restart button
+    let btnX = width / 2 - 120;
+    let btnY = 470;
+    let btnW = 240;
+    let btnH = 60;
+    
+    if (mouseX > btnX && mouseX < btnX + btnW && mouseY > btnY && mouseY < btnY + btnH) {
+      gameState = 'playing';
+      resetGame();
+    }
+  }
+}
+
+function resetGame() {
+  plants = [];
+  herbivores = [];
+  carnivores = [];
+  water = 100;
+  pollution = 0;
+  time = 0;
+  score = 0;
+  selectedTool = null;
+  
+  // Initialize with some plants
+  for (let i = 0; i < 8; i++) {
+    plants.push(new Plant(random(50, width - 50), random(150, height - 150)));
+  }
+}
