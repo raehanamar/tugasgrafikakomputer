@@ -67,7 +67,7 @@ function menu() {
   fill(150, 150, 200);
   textSize(13);
   textAlign(CENTER);
-  text('Fisika SMA/SMK Kelas 12 - Einstein 1905', width/2, height - 15);
+  text('Fisika SMA Kelas 12 - Einstein 1905', width/2, height - 15);
 }
 
 // ===== SIMULASI =====
@@ -178,7 +178,6 @@ function simulasi() {
   btn(width - 125, 595, 100, 35, '← Menu', color(100, 100, 150));
 }
 
-// ===== HELPER =====
 function btn(x, y, w, h, txt, col) {
   let hover = mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h;
   fill(hover ? color(col.levels[0] + 40, col.levels[1] + 40, col.levels[2] + 40) : col);
@@ -193,22 +192,22 @@ function btn(x, y, w, h, txt, col) {
   text(txt, x + w/2, y + h/2);
 }
 
-function roketStatis(x, y, len, col) {
+function roketStatis(x, y, col) {
   push();
   translate(x, y);
-  let s = len / L0;
   fill(col);
   stroke(255);
   strokeWeight(2);
-  rect(-50 * s, -13, 100 * s, 26, 5);
-  triangle(50 * s, -13, 50 * s, 13, 67 * s, 0);
+  rect(-50, -13, 100, 26, 5);
+  triangle(50, -13, 50, 13, 67, 0);
   fill(100, 200, 255);
   circle(0, 0, 11);
   fill(col);
-  triangle(-50 * s, -13, -60 * s, -22, -50 * s, -2);
-  triangle(-50 * s, 13, -60 * s, 22, -50 * s, 2);
+  triangle(-50, -13, -60, -22, -50, -2);
+  triangle(-50, 13, -60, 22, -50, 2);
   pop();
 }
+
 
 function roketBergerak(x, y, len, col) {
   push();
@@ -270,7 +269,6 @@ function jam(x, y, r, waktu, lbl, col) {
   text(waktu.toFixed(1) + 'h', x, y + r + 26);
 }
 
-// ===== EVENT =====
 function mousePressed() {
   if (state === 'menu') {
     if (mouseX > width/2 - 100 && mouseX < width/2 + 100 && mouseY > 480 && mouseY < 545) {
