@@ -22,7 +22,7 @@ let stars = [];
 // Quiz
 let quizQuestions = [
   {
-    question: 'Apa yang terjadi pada waktu di roket yang bergerak sangat cepat?',
+    question: 'Apa yang terjadi pada waktu jika roket yang bergerak sangat cepat?',
     options: ['Waktu lebih cepat', 'Waktu lebih lambat', 'Waktu tetap sama', 'Waktu berhenti'],
     correct: 1,
     explanation: 'Waktu di roket berjalan LEBIH LAMBAT dibanding pengamat di Bumi. Ini disebut Time Dilation.'
