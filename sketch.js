@@ -193,7 +193,7 @@ function btn(x, y, w, h, txt, col) {
 }
 
 function roketStatis(x, y, col) {
-  push();
+  push(); 
   translate(x, y);
   fill(col);
   stroke(255);
@@ -209,10 +209,11 @@ function roketStatis(x, y, col) {
 }
 
 
-function roketBergerak(x, y, len, col) {
+function roketBergerak(x, y, len, col) {  //len ukuran roket yang terlihat  //lo panjang roket diam
+  fill(col);
   push();
   translate(x, y);
-  let s = len / L0;
+  let s = len / L0;   
   fill(col);
   stroke(255);
   strokeWeight(2);
@@ -231,42 +232,35 @@ function roketBergerak(x, y, len, col) {
     fill(255, 100, 0, 180);
     triangle(-50 * s, -4, -50 * s, 4, -60 * s - v * 18, 0);
   }
-  
-  if (v > 0.3) {
-    stroke(255, 255, 255, 150);
-    strokeWeight(2);
-    for (let i = 0; i < 5; i++) {
-      let offset = -80 - i * 20;
-      line(offset, -5, offset - 15, -5);
-      line(offset, 5, offset - 15, 5);
-    }
-  }
   pop();
 }
 
 function jam(x, y, r, waktu, lbl, col) {
-  fill(20, 20, 40);
+  fill(20, 20, 40);     //background jam
   stroke(col);
   strokeWeight(3);
   circle(x, y, r * 2);
   noStroke();
   fill(col);
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 12; i++) {    //titik jam
     let a = map(i, 0, 12, 0, TWO_PI) - HALF_PI;
     circle(x + cos(a) * (r - 4), y + sin(a) * (r - 4), 3);
   }
-  let a = map(waktu % 12, 0, 12, 0, TWO_PI) - HALF_PI;
-  stroke(col);
+  let a = map(waktu % 12, 0, 12, 0, TWO_PI) - HALF_PI; //sudut jam
+  stroke(col);  //jarum
   strokeWeight(3);
-  line(x, y, x + cos(a) * (r - 10), y + sin(a) * (r - 10));
+
+  line(x, y, x + cos(a) * (r - 10), y + sin(a) * (r - 10)); //jarum jam
+
   noStroke();
   fill(col);
-  circle(x, y, 6);
+  circle(x, y, 6); //titik tengah jam
+
   fill(255);
   textSize(11);
-  textAlign(CENTER, CENTER);
+  textAlign(CENTER, CENTER); //posisi teks
   text(lbl, x, y + r + 13);
-  text(waktu.toFixed(1) + 'h', x, y + r + 26);
+  text(waktu.toFixed(1) + 'h', x, y + r + 26); //angka waktu  
 }
 
 function mousePressed() {
